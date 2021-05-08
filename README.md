@@ -1,0 +1,2 @@
+# SNSPushNotificationTest
+AmazonSNSを使ったプッシュ通知の実験
