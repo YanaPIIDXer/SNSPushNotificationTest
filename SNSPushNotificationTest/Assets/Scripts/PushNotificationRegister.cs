@@ -31,13 +31,35 @@ public class PushNotificationRegister : MonoBehaviour
     void Start()
     {
         UnityInitializer.AttachToGameObject(gameObject);
+        // ↓Unity2017以降のバージョンではこの設定が必要らしい
+        AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
+        
         UnityEngine.iOS.NotificationServices.RegisterForNotifications(UnityEngine.iOS.NotificationType.Alert | UnityEngine.iOS.NotificationType.Badge | UnityEngine.iOS.NotificationType.Sound);
 
         StartCoroutine(TryGetToken((Token) =>
         {
             Debug.Log("Device Token:" + Token);
-        }, () => Debug.Log("TryGetToken Failed.")));
 
+            var Credential = new CognitoAWSCredentials(IdentityPoolId, RegionEndpoint.GetBySystemName(Region));
+            var SNSClient = new AmazonSimpleNotificationServiceClient(Credential, RegionEndpoint.GetBySystemName(Region));
+            SNSClient.CreatePlatformEndpointAsync(
+                new CreatePlatformEndpointRequest
+                {
+                    Token = Token,
+                    PlatformApplicationArn = ApplicationArn
+                },
+                (Result) =>
+                {
+                    if (Result.Exception != null)
+                    {
+                        Debug.LogError("CreatePlatformEndpoint Failed.");
+                        Debug.LogError(Result.Exception.Message);
+                        return;
+                    }
+                    Debug.Log("CreatePlatformEndpoint Success!");
+                }
+            );
+        }, () => Debug.Log("TryGetToken Failed.")));
     }
 
     /// <summary>
