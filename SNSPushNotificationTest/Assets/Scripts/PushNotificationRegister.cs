@@ -27,6 +27,12 @@ public class PushNotificationRegister : MonoBehaviour
     /// SNSアプリケーションのARN
     /// </summary>
     private static readonly string ApplicationArn = "arn:aws:sns:ap-northeast-1:310815347645:app/APNS_SANDBOX/Test";
+
+    /// <summary>
+    /// トピックのARN
+    /// </summary>
+    private static readonly string TopicArn = "arn:aws:sns:ap-northeast-1:310815347645:Test";
+
 #if UNITY_IOS
     void Start()
     {
@@ -57,6 +63,23 @@ public class PushNotificationRegister : MonoBehaviour
                         return;
                     }
                     Debug.Log("CreatePlatformEndpoint Success!");
+                    SNSClient.SubscribeAsync(
+                        new SubscribeRequest
+                        {
+                            Endpoint = Result.Response.EndpointArn,
+                            Protocol = "application",
+                            TopicArn = TopicArn
+                        },
+                        (SubscribeResult) =>
+                    {
+                        if (SubscribeResult.Exception != null)
+                        {
+                            Debug.LogError("Subscribe Failed.");
+                            Debug.LogError(SubscribeResult.Exception.Message);
+                            return;
+                        }
+                        Debug.Log("Subscribe Success!");
+                    });
                 }
             );
         }, () => Debug.Log("TryGetToken Failed.")));
