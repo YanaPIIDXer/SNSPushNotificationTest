@@ -1,6 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Amazon.SimpleNotificationService;
+using Amazon.Runtime;
+using Amazon.CognitoIdentity;
+using Amazon;
+using Amazon.SimpleNotificationService.Model;
 
 /// <summary>
 /// プッシュ通知登録
@@ -21,4 +27,46 @@ public class PushNotificationRegister : MonoBehaviour
     /// SNSアプリケーションのARN
     /// </summary>
     private static readonly string ApplicationArn = "arn:aws:sns:ap-northeast-1:310815347645:app/APNS_SANDBOX/Test";
+#if UNITY_IOS
+    void Start()
+    {
+        UnityInitializer.AttachToGameObject(gameObject);
+        UnityEngine.iOS.NotificationServices.RegisterForNotifications(UnityEngine.iOS.NotificationType.Alert | UnityEngine.iOS.NotificationType.Badge | UnityEngine.iOS.NotificationType.Sound);
+
+        StartCoroutine(TryGetToken((Token) =>
+        {
+            Debug.Log("Device Token:" + Token);
+        }, () => Debug.Log("TryGetToken Failed.")));
+
+    }
+
+    /// <summary>
+    /// トークン取得
+    /// </summary>
+    /// <param name="OnSuccess">成功コールバック</param>
+    /// <param name="OnFail">失敗コールバック</param>
+    private IEnumerator TryGetToken(Action<string> OnSuccess, Action OnFail)
+    {
+        for (int TryCount = 10; TryCount > 0; TryCount--)
+        {
+            yield return new WaitForSeconds(1.0f);
+            var Token = UnityEngine.iOS.NotificationServices.deviceToken;
+            var Error = UnityEngine.iOS.NotificationServices.registrationError;
+            if (!string.IsNullOrEmpty(Error))
+            {
+                Debug.Log("Error:" + Error);
+                OnFail?.Invoke();
+                yield break;
+            }
+
+            if (Token != null)
+            {
+                string TokenStr = BitConverter.ToString(Token).Replace("-","");
+                OnSuccess?.Invoke(TokenStr);
+                yield break;
+            }
+        }
+        OnFail?.Invoke();
+    }
+#endif
 }
