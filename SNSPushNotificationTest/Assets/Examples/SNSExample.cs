@@ -132,7 +132,7 @@ namespace AWSSDK.Examples
 #if UNITY_5
             UnityEngine.iOS.NotificationServices.RegisterForNotifications(UnityEngine.iOS.NotificationType.Alert | UnityEngine.iOS.NotificationType.Badge | UnityEngine.iOS.NotificationType.Sound);
 #else
-            NotificationServices.RegisterForRemoteNotificationTypes(RemoteNotificationType.Alert|RemoteNotificationType.Badge|RemoteNotificationType.Sound);
+            UnityEngine.iOS.NotificationServices.RegisterForNotifications(UnityEngine.iOS.NotificationType.Alert|UnityEngine.iOS.NotificationType.Badge|UnityEngine.iOS.NotificationType.Sound);
 #endif
             CancelInvoke("CheckForDeviceToken");
             InvokeRepeating("CheckForDeviceToken",1f,1f);
@@ -148,8 +148,8 @@ namespace AWSSDK.Examples
             var token = UnityEngine.iOS.NotificationServices.deviceToken;
             var error = UnityEngine.iOS.NotificationServices.registrationError;
 #else
-            var token = NotificationServices.deviceToken;
-            var error = NotificationServices.registrationError;
+            var token = UnityEngine.iOS.NotificationServices.deviceToken;
+            var error = UnityEngine.iOS.NotificationServices.registrationError;
 #endif
             if(count>=10 || !string.IsNullOrEmpty(error))
             {
